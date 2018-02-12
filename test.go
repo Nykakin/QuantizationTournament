@@ -160,7 +160,7 @@ func main() {
 		rows = append(rows, process(img, f.Name()))
     }
 	
-	fo, err := os.Create("output.html")
+	fo, err := os.Create("gh-pages.html")
 	if err != nil {
     	 panic(err)
 	}
