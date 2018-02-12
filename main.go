@@ -17,6 +17,7 @@ import (
 	joshdk_quantize "github.com/joshdk/quantize"
 	"github.com/marekm4/color-extractor"
 	"github.com/nfnt/resize"
+	"github.com/soniakeys/quant/median"
 )
 
 const (
@@ -41,6 +42,7 @@ const (
 		    <th></th>
 	    	<th>github.com/Nykakin/quantize</th>
 			<th>github.com/marekm4/color-extractor</th>
+            <th>github.com/soniakeys/quan</th>
 	    	<th>github.com/RobCherry/vibrant</th>
 			<th>github.com/joshdk/quantize</th>
 		</tr>
@@ -53,6 +55,7 @@ const (
 	ROW = `
 		<tr>
 		    <td>%s<br/>%s</td>
+	    	<td>%s</td>
 	    	<td>%s</td>
 	    	<td>%s</td>
 	    	<td>%s</td>
@@ -77,6 +80,20 @@ func nykakin(img image.Image) string {
 	rects := []string{}
 	for index, clr := range colors {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
+	}
+
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+}
+
+func soniakeys(img image.Image) string {
+	q := median.Quantizer(5)
+	colors := q.Quantize(make(color.Palette, 0, 5), img)
+
+	rects := []string{}
+	for index, color := range colors {
+		r, g, b, _ := color.RGBA()
+
+		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
 	}
 
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
@@ -128,6 +145,7 @@ func process(img image.Image, filename string) string {
 		fmt.Sprintf("<img src=\"%s\">", filename),
 		nykakin(img),
 		marekm4(img),
+		soniakeys(img),
 		robCherry(img),
 		joshdk(img),
 	)
