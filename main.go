@@ -135,7 +135,7 @@ func process(img image.Image, filename string) string {
 }
 
 func main() {
-    files, err := ioutil.ReadDir("./")
+    files, err := ioutil.ReadDir("./images/")
     if err != nil {
 		panic(err)
     }
@@ -146,7 +146,7 @@ func main() {
 			continue
 		}
 	
-    	f, err := os.Open(f.Name())
+    	f, err := os.Open("images/" + f.Name())
 	    if err != nil {
 	        panic(err)
 	    }
