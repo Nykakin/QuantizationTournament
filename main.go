@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
-    "image"
+	"image"
 	"image/color"
-    _ "image/jpeg"
-    _ "image/png"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"io/ioutil"
-    "os"
+	"os"
 	"sort"
 	"strings"
 
-	"github.com/nfnt/resize"
-    nykakin_quantize "github.com/Nykakin/quantize"
-	"github.com/marekm4/color-extractor"
+	nykakin_quantize "github.com/Nykakin/quantize"
 	"github.com/RobCherry/vibrant"
 	joshdk_quantize "github.com/joshdk/quantize"
+	"github.com/marekm4/color-extractor"
+	"github.com/nfnt/resize"
 )
 
 const (
@@ -68,17 +68,16 @@ const (
 	RECT = "<rect x=\"%d\" width=\"50\" height=\"50\" style=\"fill:rgb(%d,%d,%d)\" />"
 )
 
-
 func nykakin(img image.Image) string {
-    colors, err := nykakin_quantize.DominantColors(img, 5)
-    if err != nil {
-        panic(err)
-    }    
+	colors, err := nykakin_quantize.DominantColors(img, 5)
+	if err != nil {
+		panic(err)
+	}
 
 	rects := []string{}
-    for index, clr := range colors {
+	for index, clr := range colors {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
-    }
+	}
 
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
 }
@@ -87,22 +86,22 @@ func marekm4(img image.Image) string {
 	colors := color_extractor.ExtractColors(img)
 
 	rects := []string{}
-    for index, color := range colors {
+	for index, color := range colors {
 		r, g, b, _ := color.RGBA()
 
-		rects = append(rects, fmt.Sprintf(RECT, index*50,  r>>8, g>>8, b>>8))
-    }
+		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
+	}
 
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
 }
 
 func joshdk(img image.Image) string {
-    colors := joshdk_quantize.Image(img, 5)
+	colors := joshdk_quantize.Image(img, 5)
 
 	rects := []string{}
-    for index, clr := range colors {
+	for index, clr := range colors {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
-    }
+	}
 
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
 }
@@ -113,11 +112,11 @@ func robCherry(img image.Image) string {
 	sort.Sort(populationSwatchSorter(swatches))
 
 	rects := []string{}
-    for index, swatch := range swatches {
+	for index, swatch := range swatches {
 
 		clr := color.NRGBAModel.Convert(swatch.Color()).(color.NRGBA)
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
-    }
+	}
 
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
 }
@@ -135,40 +134,40 @@ func process(img image.Image, filename string) string {
 }
 
 func main() {
-    files, err := ioutil.ReadDir("./images/")
-    if err != nil {
+	files, err := ioutil.ReadDir("./images/")
+	if err != nil {
 		panic(err)
-    }
+	}
 
 	rows := []string{}
-    for _, f := range files {
-		if strings.HasSuffix(f.Name(), ".go") || strings.HasSuffix(f.Name(), ".html")  {
+	for _, f := range files {
+		if strings.HasSuffix(f.Name(), ".go") || strings.HasSuffix(f.Name(), ".html") {
 			continue
 		}
-	
-    	f, err := os.Open("images/" + f.Name())
-	    if err != nil {
-	        panic(err)
-	    }
-    	defer f.Close()
-    	img, _, err := image.Decode(f)
-    	if err != nil {
-    	    panic(err)
-    	}
+
+		f, err := os.Open("images/" + f.Name())
+		if err != nil {
+			panic(err)
+		}
+		defer f.Close()
+		img, _, err := image.Decode(f)
+		if err != nil {
+			panic(err)
+		}
 
 		img = resize.Resize(100, 100, img, resize.NearestNeighbor)
 		rows = append(rows, process(img, f.Name()))
-    }
-	
+	}
+
 	fo, err := os.Create("index.html")
 	if err != nil {
-    	 panic(err)
+		panic(err)
 	}
 	defer fo.Close()
 
 	_, err = io.Copy(fo, strings.NewReader(fmt.Sprintf(HTML, strings.Join(rows, ""))))
 	if err != nil {
-		 panic(err)
+		panic(err)
 	}
 }
 
@@ -177,4 +176,3 @@ type populationSwatchSorter []*vibrant.Swatch
 func (p populationSwatchSorter) Len() int           { return len(p) }
 func (p populationSwatchSorter) Less(i, j int) bool { return p[i].Population() > p[j].Population() }
 func (p populationSwatchSorter) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
-
