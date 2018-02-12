@@ -18,6 +18,7 @@ import (
 	"github.com/marekm4/color-extractor"
 	"github.com/nfnt/resize"
 	"github.com/soniakeys/quant/median"
+    "github.com/esimov/colorquant"
 )
 
 const (
@@ -42,6 +43,7 @@ const (
 		    <th></th>
 	    	<th>github.com/Nykakin/quantize</th>
 			<th>github.com/marekm4/color-extractor</th>
+            <th>https://github.com/esimov/colorquant</th>
             <th>github.com/soniakeys/quan</th>
 	    	<th>github.com/RobCherry/vibrant</th>
 			<th>github.com/joshdk/quantize</th>
@@ -55,6 +57,7 @@ const (
 	ROW = `
 		<tr>
 		    <td>%s<br/>%s</td>
+	    	<td>%s</td>
 	    	<td>%s</td>
 	    	<td>%s</td>
 	    	<td>%s</td>
@@ -112,6 +115,21 @@ func marekm4(img image.Image) string {
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
 }
 
+func esimov(img image.Image) string {
+	rects := []string{}
+
+    res := colorquant.Quant{}.Quantize(img, 5)
+    p, ok := res.(*image.Paletted)
+    if !ok {
+        panic("colorquant")
+    }
+    for index, col := range p.Palette {
+		r, g, b, _ := col.RGBA()
+		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
+    }
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+}
+
 func joshdk(img image.Image) string {
 	colors := joshdk_quantize.Image(img, 5)
 
@@ -145,6 +163,7 @@ func process(img image.Image, filename string) string {
 		fmt.Sprintf("<img src=\"%s\">", filename),
 		nykakin(img),
 		marekm4(img),
+        esimov(img),
 		soniakeys(img),
 		robCherry(img),
 		joshdk(img),
