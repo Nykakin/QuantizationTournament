@@ -11,6 +11,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	nykakin_quantize "github.com/Nykakin/quantize"
 	"github.com/RobCherry/vibrant"
@@ -70,13 +71,18 @@ const (
 		<svg width="250" height="50">
 		%s
 		</svg>
+        </br>
+        %s
 	`
 	RECT = "<rect x=\"%d\" width=\"50\" height=\"50\" style=\"fill:rgb(%d,%d,%d)\" />"
 )
 
 func nykakin(img image.Image) string {
 	quantizer := nykakin_quantize.NewHierarhicalQuantizer()
+
+	start := time.Now()
 	colors, err := quantizer.Quantize(img, 5)
+	elapsed := time.Since(start)
 	if err != nil {
 		panic(err)
 	}
@@ -86,12 +92,15 @@ func nykakin(img image.Image) string {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
 	}
 
-	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"), elapsed)
 }
 
 func soniakeys(img image.Image) string {
 	q := median.Quantizer(5)
+
+	start := time.Now()
 	colors := q.Quantize(make(color.Palette, 0, 5), img)
+	elapsed := time.Since(start)
 
 	rects := []string{}
 	for index, color := range colors {
@@ -100,11 +109,13 @@ func soniakeys(img image.Image) string {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
 	}
 
-	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"), elapsed)
 }
 
 func marekm4(img image.Image) string {
+	start := time.Now()
 	colors := color_extractor.ExtractColors(img)
+	elapsed := time.Since(start)
 
 	rects := []string{}
 	for index, color := range colors {
@@ -113,13 +124,16 @@ func marekm4(img image.Image) string {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
 	}
 
-	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"), elapsed)
 }
 
 func esimov(img image.Image) string {
 	rects := []string{}
 
+	start := time.Now()
 	res := colorquant.Quant{}.Quantize(img, 5)
+	elapsed := time.Since(start)
+
 	p, ok := res.(*image.Paletted)
 	if !ok {
 		panic("colorquant")
@@ -128,24 +142,28 @@ func esimov(img image.Image) string {
 		r, g, b, _ := col.RGBA()
 		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
 	}
-	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"), elapsed)
 }
 
 func joshdk(img image.Image) string {
+	start := time.Now()
 	colors := joshdk_quantize.Image(img, 5)
+	elapsed := time.Since(start)
 
 	rects := []string{}
 	for index, clr := range colors {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
 	}
 
-	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"), elapsed)
 }
 
 func robCherry(img image.Image) string {
+	start := time.Now()
 	palette := vibrant.NewPaletteBuilder(img).MaximumColorCount(uint32(5)).Generate()
 	swatches := palette.Swatches()
 	sort.Sort(populationSwatchSorter(swatches))
+	elapsed := time.Since(start)
 
 	rects := []string{}
 	for index, swatch := range swatches {
@@ -154,7 +172,7 @@ func robCherry(img image.Image) string {
 		rects = append(rects, fmt.Sprintf(RECT, index*50, clr.R, clr.G, clr.B))
 	}
 
-	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
+	return fmt.Sprintf(SVG, strings.Join(rects, "\n"), elapsed)
 }
 
 func process(img image.Image, filename string) string {
