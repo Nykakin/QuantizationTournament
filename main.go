@@ -14,11 +14,11 @@ import (
 
 	nykakin_quantize "github.com/Nykakin/quantize"
 	"github.com/RobCherry/vibrant"
+	"github.com/esimov/colorquant"
 	joshdk_quantize "github.com/joshdk/quantize"
 	"github.com/marekm4/color-extractor"
 	"github.com/nfnt/resize"
 	"github.com/soniakeys/quant/median"
-    "github.com/esimov/colorquant"
 )
 
 const (
@@ -75,7 +75,8 @@ const (
 )
 
 func nykakin(img image.Image) string {
-	colors, err := nykakin_quantize.DominantColors(img, 5)
+	quantizer := nykakin_quantize.NewHierarhicalQuantizer()
+	colors, err := quantizer.Quantize(img, 5)
 	if err != nil {
 		panic(err)
 	}
@@ -118,15 +119,15 @@ func marekm4(img image.Image) string {
 func esimov(img image.Image) string {
 	rects := []string{}
 
-    res := colorquant.Quant{}.Quantize(img, 5)
-    p, ok := res.(*image.Paletted)
-    if !ok {
-        panic("colorquant")
-    }
-    for index, col := range p.Palette {
+	res := colorquant.Quant{}.Quantize(img, 5)
+	p, ok := res.(*image.Paletted)
+	if !ok {
+		panic("colorquant")
+	}
+	for index, col := range p.Palette {
 		r, g, b, _ := col.RGBA()
 		rects = append(rects, fmt.Sprintf(RECT, index*50, r>>8, g>>8, b>>8))
-    }
+	}
 	return fmt.Sprintf(SVG, strings.Join(rects, "\n"))
 }
 
@@ -163,7 +164,7 @@ func process(img image.Image, filename string) string {
 		fmt.Sprintf("<img src=\"%s\">", filename),
 		nykakin(img),
 		marekm4(img),
-        esimov(img),
+		esimov(img),
 		soniakeys(img),
 		robCherry(img),
 		joshdk(img),
